@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR & Barcode Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
+        #reader { width: 100%; max-width: 450px; margin: auto; border-radius: 10px; overflow: hidden; }
+        #res { margin-top: 20px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <h3>Scanner Gudang (Log & Master)</h3>
+    <div id="reader"></div>
+    <div id="res">Menunggu Scan...</div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyWWx9YHZ04zjhxU9c6QXrCJIaYiIWWwtjXksly4e2RR-aTkaGwAED_IEf5PBjdLPcK/exec";
+
+        async function onScanSuccess(decodedText) {
+            html5QrcodeScanner.clear(); // Stop scan sebentar
+            const resDiv = document.getElementById('res');
+            resDiv.innerHTML = "⌛ Mengecek: " + decodedText;
+
+            try {
+                // 1. Cek ke Master
+                const resp = await fetch(`${WEB_APP_URL}?action=check&barcode=${decodedText}`);
+                const status = await resp.text();
+
+                let nama = "";
+                let ket = "";
+
+                if (status === "NOT_FOUND") {
+                    nama = prompt("QR/Barcode Baru! Masukkan Nama Barang:");
+                    if (!nama) { location.reload(); return; }
+                } else {
+                    nama = status;
+                }
+
+                // 2. Edit Keterangan (Selalu ditanyakan agar bisa di-edit setiap scan)
+                ket = prompt("Edit/Tambah Keterangan untuk " + nama + ":", "-");
+                if (ket === null) { location.reload(); return; }
+
+                // 3. Kirim ke Log
+                resDiv.innerHTML = "🚀 Mengirim data...";
+                const save = await fetch(`${WEB_APP_URL}?barcode=${decodedText}&nama=${encodeURIComponent(nama)}&ket=${encodeURIComponent(ket)}`);
+                const resultText = await save.text();
+
+                alert("Berhasil! " + resultText + " tercatat di Log.");
+                location.reload();
+
+            } catch (err) {
+                alert("Gagal koneksi server!");
+                location.reload();
+            }
+        }
+
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+            fps: 15, 
+            qrbox: {width: 250, height: 200} 
+        });
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>

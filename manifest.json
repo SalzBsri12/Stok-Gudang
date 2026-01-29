@@ -1,0 +1,16 @@
+{
+  "name": "Scanner Gudang Log",
+  "short_name": "ScanGudang",
+  "description": "Aplikasi Scan Barcode Ke Google Sheets",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196F3",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/241/241528.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
